@@ -7,7 +7,7 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware test
+// Middleware
 app.use(express.json());
 
 // Routes
