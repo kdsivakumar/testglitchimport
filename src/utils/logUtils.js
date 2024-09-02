@@ -11,10 +11,12 @@ const ensureLogsDirAndFiles = async () => {
     // Define paths for log files
     const errorLogFile = path.join(logsDir, "errors.log");
     const requestLogFile = path.join(logsDir, "requests.log");
+    const gitLogFile = path.join(logsDir, "git.log");
 
     // Create empty log files if they do not exist
     await fs.promises.appendFile(errorLogFile, ""); // This will create the file if it doesn't exist
     await fs.promises.appendFile(requestLogFile, ""); // This will create the file if it doesn't exist
+    await fs.promises.appendFile(gitLogFile, ""); // This will create the file if it doesn't exist
 
     console.log("Log directory and files are ready.");
   } catch (err) {

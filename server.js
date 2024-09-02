@@ -1,10 +1,12 @@
 const express = require("express");
 const userRoutes = require("./src/routes/userRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const logRoutes = require("./src/routes/logerRoutes");
+const gitRoutes = require("./src/routes/gitRoutes");
 const ensureLogsDirAndFiles = require("./src/utils/logUtils");
 const requestLogger = require("./src/middlewares/requestLogger");
-const errorHandler = require("./src/middlewares/errorHandler");
 const connectDB = require("./src/config/dbMango");
+const errorHandlingMiddleware = require("./src/middlewares/errorHandler");
 require("dotenv").config();
 
 const app = express();
@@ -19,9 +21,11 @@ ensureLogsDirAndFiles().then(() => {
   // Routes
   app.use("/users", userRoutes);
   app.use("/auth", authRoutes);
+  app.use("/", logRoutes);
+  app.use("/git", gitRoutes);
 
   // Error handling middleware should be placed after routes
-  app.use(errorHandler);
+  app.use(errorHandlingMiddleware);
 
   // Connect to MongoDB
   connectDB();

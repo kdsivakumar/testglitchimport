@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/config");
+const ErrorLoggerService = require("../services/errorLoggerService");
 
 module.exports = (req, res, next) => {
   const authHeader = req.header("Authorization");
@@ -13,6 +14,7 @@ module.exports = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    ErrorLoggerService.logError(err);
     res.status(401).json({ message: "Invalid token" });
   }
 };

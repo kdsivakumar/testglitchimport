@@ -1,6 +1,8 @@
-module.exports = (err, req, res, next) => {
-  // Log error details
-  console.error(err.stack);
+const ErrorLoggerService = require("../services/errorLoggerService");
+
+const errorHandlingMiddleware = (err, req, res, next) => {
+  // Log the error using the ErrorLoggerService
+  ErrorLoggerService.logError(err);
 
   // Send error response
   res.status(err.status || 500).json({
@@ -8,3 +10,5 @@ module.exports = (err, req, res, next) => {
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }), // Include stack trace in development
   });
 };
+
+module.exports = errorHandlingMiddleware;
