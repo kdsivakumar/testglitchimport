@@ -17,6 +17,15 @@ class GitService extends BaseLoggerService {
       console.error("Error logging to file:", error);
     }
   }
+  async changeDirectory() {
+    try {
+      const { stdout, stderr } = await execPromise("cd testglitchimport");
+      if (stderr) throw new Error(`Fetch error: ${stderr}`);
+      return stdout;
+    } catch (error) {
+      throw new Error(`Failed to fetch: ${error.message}`);
+    }
+  }
 
   async fetch() {
     try {
