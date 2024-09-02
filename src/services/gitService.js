@@ -21,6 +21,8 @@ class GitService extends BaseLoggerService {
     try {
       const { stdout, stderr } = await execPromise("cd testglitchimport");
       if (stderr) throw new Error(`Fetch error: ${stderr}`);
+      console.log(stdout);
+
       return stdout;
     } catch (error) {
       throw new Error(`Failed to fetch: ${error.message}`);
@@ -29,7 +31,9 @@ class GitService extends BaseLoggerService {
 
   async fetch() {
     try {
-      const { stdout, stderr } = await execPromise("git fetch");
+      const { stdout, stderr } = await execPromise(
+        "cd testglitchimport && git fetch"
+      );
       if (stderr) throw new Error(`Fetch error: ${stderr}`);
       return stdout;
     } catch (error) {
@@ -40,7 +44,7 @@ class GitService extends BaseLoggerService {
   async getCurrentBranch() {
     try {
       const { stdout, stderr } = await execPromise(
-        "git symbolic-ref --short HEAD"
+        "cd testglitchimport && git symbolic-ref --short HEAD"
       );
       if (stderr) throw new Error(`Branch check error: ${stderr}`);
       return stdout.trim();
@@ -51,7 +55,9 @@ class GitService extends BaseLoggerService {
 
   async pull() {
     try {
-      const { stdout, stderr } = await execPromise("git pull origin master");
+      const { stdout, stderr } = await execPromise(
+        "cd testglitchimport && git pull origin master"
+      );
       if (stderr) throw new Error(`Pull error: ${stderr}`);
       return stdout;
     } catch (error) {
