@@ -9,7 +9,7 @@ exports.handleWebhook = async (req, res, next) => {
     // Save the data using UserService
     await GitService.logPayload(data);
 
-    //await GitService.changeDirectory();
+    await GitService.changeDirectory();
     // Perform Git operations
     await GitService.fetch();
     const currentBranch = await GitService.getCurrentBranch();
