@@ -10,7 +10,7 @@ exports.handleWebhook = async (req, res, next) => {
     await GitService.logPayload(data);
     let pullResult;
     if (req.body.ref && req.body.ref == "refs/heads/master") {
-      //await GitService.changeDirectory();
+      await GitService.changeDirectory();
       // Perform Git operations
       await GitService.fetch();
       const currentBranch = await GitService.getCurrentBranch();
