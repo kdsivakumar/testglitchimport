@@ -8,23 +8,30 @@ exports.handleWebhook = async (req, res, next) => {
 
     // Save the data using UserService
     await GitService.logPayload(data);
+    let pullResult;
+    if (req.body.ref && req.body.ref == "refs/heads/master") {
+      //await GitService.changeDirectory();
+      // Perform Git operations
+      await GitService.fetch();
+      const currentBranch = await GitService.getCurrentBranch();
 
-    await GitService.changeDirectory();
-    // Perform Git operations
-    await GitService.fetch();
-    const currentBranch = await GitService.getCurrentBranch();
+      if (currentBranch !== "master") {
+        return res
+          .status(200)
+          .json({ message: `Current branch is ${currentBranch}, not master` });
+      }
 
-    if (currentBranch !== "master") {
-      return res
-        .status(200)
-        .json({ message: `Current branch is ${currentBranch}, not master` });
+      pullResult = await GitService.pull();
     }
-
-    const pullResult = await GitService.pull();
     res
       .status(200)
       .json({ message: "Code updated successfully", details: pullResult });
   } catch (error) {
-    next(error); // Pass error to global error handling middleware
+    if (error.message.includes("Failed to pull")) {
+      await GitService.logPayload(error.message);
+      res.status(200).json({ message: "Code updated successfully" });
+    } else {
+      next(error); // Pass error to global error handling middleware
+    }
   }
 };
