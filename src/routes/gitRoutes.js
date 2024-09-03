@@ -7,5 +7,5 @@ router.post("/webhook", gitWebhookController.handleWebhook);
 router.get("/test", (req, res) => {
   res.status(200).json({ message: "Test successful" });
 });
-
+router.get("/refresh", gitWebhookController.refresh);
 module.exports = router;

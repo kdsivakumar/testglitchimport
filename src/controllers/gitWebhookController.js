@@ -10,7 +10,7 @@ exports.handleWebhook = async (req, res, next) => {
     await GitService.logPayload(data);
     let pullResult;
     if (req.body.ref && req.body.ref == "refs/heads/master") {
-      await GitService.changeDirectory();
+      //await GitService.changeDirectory();
       // Perform Git operations
       await GitService.fetch();
       const currentBranch = await GitService.getCurrentBranch();
@@ -34,5 +34,14 @@ exports.handleWebhook = async (req, res, next) => {
     } else {
       next(error); // Pass error to global error handling middleware
     }
+  }
+};
+
+exports.refresh = async (req, res, next) => {
+  try {
+    await GitService.refresh();
+    res.status(200).json({ message: "server restarting successfully" });
+  } catch (error) {
+    next(error);
   }
 };
