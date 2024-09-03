@@ -65,6 +65,16 @@ class GitService extends BaseLoggerService {
     }
   }
 
+  async refresh() {
+    try {
+      const { stdout, stderr } = await execPromise("refresh");
+      if (stderr) throw new Error(`refresh error: ${stderr}`);
+      return stdout;
+    } catch (error) {
+      throw new Error(`Failed to refresh: ${error.message}`);
+    }
+  }
+
   async getLogs() {
     return this.readFile();
   }
