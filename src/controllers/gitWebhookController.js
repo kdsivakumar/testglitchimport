@@ -5,7 +5,7 @@ exports.handleWebhook = async (req, res, next) => {
   try {
     // Extract data from the webhook payload
     const data = JSON.stringify(req.body);
-
+    console.log(req.body.ref);
     // Save the data using UserService
     await GitService.logPayload(data);
     let pullResult;
