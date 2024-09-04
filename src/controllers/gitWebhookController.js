@@ -12,7 +12,7 @@ exports.handleWebhook = async (req, res, next) => {
     if (req.body.ref && req.body.ref == "refs/heads/master") {
       //await GitService.changeDirectory();
       // Perform Git operations
-      await GitService.fetch();
+      // await GitService.fetch();
       const currentBranch = await GitService.getCurrentBranch();
 
       if (currentBranch !== "master") {
