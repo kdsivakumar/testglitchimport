@@ -38,6 +38,7 @@ exports.handleWebhook = async (req, res, next) => {
       await GitService.refresh();
       res.status(200).json({ message: "Code updated successfully" });
     } else {
+      console.log(error);
       next(error); // Pass error to global error handling middleware
     }
   }
