@@ -27,7 +27,13 @@ exports.handleWebhook = async (req, res, next) => {
       .status(200)
       .json({ message: "Code updated successfully", details: pullResult });
   } catch (error) {
-    if (error.message.includes("Failed to pull")) {
+    if (error.message.includes("Failed to fetch")) {
+      await GitService.pull();
+    }
+    if (
+      error.message.includes("Failed to pull") ||
+      error.message.includes("Failed to fetch")
+    ) {
       await GitService.logPayload(error.message);
       await GitService.refresh();
       res.status(200).json({ message: "Code updated successfully" });
