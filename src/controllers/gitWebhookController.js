@@ -49,6 +49,7 @@ exports.refresh = async (req, res, next) => {
     await GitService.refresh();
     res.status(200).json({ message: "server restarting successfully" });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
