@@ -18,6 +18,16 @@ ensureLogsDirAndFiles().then(() => {
   app.use(express.json());
   app.use(requestLogger); // Log all requests
 
+  // Example CORS setup
+  app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*"); // Adjust as per your security needs
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
+  });
+
   // Routes
   app.use("/users", userRoutes);
   app.use("/auth", authRoutes);
