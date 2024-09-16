@@ -7,7 +7,10 @@ class CombinedLoggerService {
       RequestLoggerService.getLogs(),
       ErrorLoggerService.getLogs(),
     ]).then(([requestLogs, errorLogs]) => {
-      return `--- Request Logs ---\n${requestLogs}\n--- Error Logs ---\n${errorLogs}`;
+      return {
+        "Request Logs": requestLogs,
+        "Error Logs": errorLogs,
+      };
     });
   }
 

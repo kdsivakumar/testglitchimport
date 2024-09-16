@@ -7,7 +7,7 @@ class LogController {
   async retrieveLogs(req, res) {
     try {
       const logs = await CombinedLoggerService.getCombinedLogs();
-      res.send(logs);
+      res.json(logs);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -73,7 +73,7 @@ class LogController {
     const { date } = req.params;
     try {
       const logs = await ErrorLoggerService.getLogsByDate(date);
-      res.send(logs);
+      res.json(logs);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
