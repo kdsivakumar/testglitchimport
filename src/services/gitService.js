@@ -1,6 +1,6 @@
 const { exec } = require("child_process");
 const util = require("util");
-const BaseLoggerService = require("./baseLoggerService");
+const BaseLoggerService = require("./loggerservice/baseLoggerService");
 
 const execPromise = util.promisify(exec);
 
@@ -75,14 +75,47 @@ class GitService extends BaseLoggerService {
     }
   }
 
+  parseLogs(logData) {
+    const logEntries = [];
+    const lines = logData.split("\n");
+    let currentEntry = null;
+    let test = null;
+    lines.forEach((line) => {
+      if (line.startsWith("Timestamp:")) {
+        if (currentEntry) {
+          logEntries.push(currentEntry);
+        }
+        currentEntry = {
+          timestamp: line.substring("Timestamp: ".length).trim() + "\n",
+        };
+      } else if (line.startsWith("payload:")) {
+        if (currentEntry) {
+          test = "p";
+          currentEntry.payload =
+            line.substring("payload: ".length).trim() + "\n";
+        }
+      } else if (test == "p" && currentEntry.error) {
+        currentEntry.payload +=
+          line.substring("payload: ".length).trim() + "\n";
+      }
+    });
+
+    if (currentEntry) {
+      logEntries.push(currentEntry);
+    }
+
+    return logEntries;
+  }
+
   async getLogs() {
-    return this.readFile();
+    const logData = await this.readFile();
+    return this.parseLogs(logData);
   }
 
   async getLogsByDate(date) {
     const data = await this.getLogs();
-    const logs = data.split("\n\n").filter((log) => log.includes(date));
-    return logs.join("\n\n");
+    const logs = data.filter((i) => i.timestamp.trim().split("T")[0] === date);
+    return logs;
   }
 
   async clearLogs() {

@@ -1,4 +1,4 @@
-const ErrorLoggerService = require("../services/errorLoggerService");
+const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 const errorHandlingMiddleware = (err, req, res, next) => {
   // Log the error using the ErrorLoggerService

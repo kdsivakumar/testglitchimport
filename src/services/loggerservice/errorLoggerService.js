@@ -27,7 +27,7 @@ class ErrorLoggerService extends BaseLoggerService {
           logEntries.push(currentEntry);
         }
         currentEntry = {
-          timestamp: line.substring("Timestamp: ".length).trim() + "\n",
+          timestamp: line.substring("Timestamp: ".length).trim(),
         };
       } else if (line.startsWith("Error:")) {
         if (currentEntry) {

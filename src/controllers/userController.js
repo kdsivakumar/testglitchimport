@@ -1,5 +1,5 @@
 const UserService = require("../services/userService");
-const ErrorLoggerService = require("../services/errorLoggerService");
+const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 exports.getUsers = async (req, res) => {
   try {

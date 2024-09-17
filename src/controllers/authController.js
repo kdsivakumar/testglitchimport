@@ -1,5 +1,5 @@
 const AuthService = require("../services/authService");
-const ErrorLoggerService = require("../services/errorLoggerService");
+const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 exports.register = async (req, res) => {
   const { username, password } = req.body;

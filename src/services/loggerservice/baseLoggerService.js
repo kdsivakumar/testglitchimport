@@ -3,7 +3,7 @@ const path = require("path");
 
 class BaseLoggerService {
   constructor(logFileName) {
-    this.logFile = path.join(__dirname, `../logs/${logFileName}`);
+    this.logFile = path.join(__dirname, `../../logs/${logFileName}`);
   }
 
   async readFile() {

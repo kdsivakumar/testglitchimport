@@ -16,7 +16,7 @@ router.get(
   LogController.retrieveRequestLogsByDate
 );
 router.get("/logs/errors/date/:date", LogController.retrieveErrorLogsByDate);
-router.get("/logs/git/date/:date", LogController.retrieveGitLogs);
+router.get("/logs/git/date/:date", LogController.retrieveGitLogsByDate);
 router.post("/logs/requests/clear", LogController.clearRequestLogs);
 router.post("/logs/errors/clear", LogController.clearErrorLogs);
 router.post("/logs/git/clear", LogController.clearGitLogs);

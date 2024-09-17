@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/config");
-const ErrorLoggerService = require("../services/errorLoggerService");
+const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 module.exports = (req, res, next) => {
   const authHeader = req.header("Authorization");

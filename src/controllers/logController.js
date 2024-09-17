@@ -1,6 +1,6 @@
-const RequestLoggerService = require("../services/requestLoggerService");
-const ErrorLoggerService = require("../services/errorLoggerService");
-const CombinedLoggerService = require("../services/combinedLoggerService");
+const RequestLoggerService = require("../services/loggerservice/requestLoggerService");
+const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
+const CombinedLoggerService = require("../services/loggerservice/combinedLoggerService");
 const GitService = require("../services/gitService");
 
 class LogController {
