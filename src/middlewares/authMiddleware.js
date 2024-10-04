@@ -9,7 +9,6 @@ module.exports = (req, res, next) => {
   }
   const token = authHeader.replace("Bearer ", "");
   const admin_routs = [
-    "/webhook",
     "/refresh",
     "/logs/clear",
     "/logs/requests/clear",
