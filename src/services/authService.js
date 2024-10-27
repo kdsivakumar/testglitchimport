@@ -19,7 +19,7 @@ class AuthService {
     const token = jwt.sign(
       {
         userId: user._id,
-        user: user.username === "admin" ? "admin" : "customer",
+        role: user.username === "admin" ? "admin" : "customer",
       },
       JWT_SECRET,
       {

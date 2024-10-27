@@ -3,6 +3,8 @@ const userRoutes = require("./src/routes/userRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const logRoutes = require("./src/routes/logerRoutes");
 const gitRoutes = require("./src/routes/gitRoutes");
+const chatRoutes = require("./src/routes/chatRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
 const ensureLogsDirAndFiles = require("./src/utils/logUtils");
 const requestLogger = require("./src/middlewares/requestLogger");
 const connectDB = require("./src/config/dbMango");
@@ -33,6 +35,8 @@ ensureLogsDirAndFiles().then(() => {
   app.use("/auth", authRoutes);
   app.use("/", logRoutes);
   app.use("/git", gitRoutes);
+  app.use("/chat", chatRoutes);
+  app.use("/notifications", notificationRoutes);
 
   // Error handling middleware should be placed after routes
   app.use(errorHandlingMiddleware);
