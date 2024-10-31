@@ -44,6 +44,7 @@ class UserService {
     const existingUser = await this.findUserDetailsById(userId);
     if (existingUser) throw new Error("User Details already exists");
     const userDetails = new UserDetails({ userId, details });
+    userDetails.details["name"] = user.name;
     await userDetails.save();
     return userDetails;
   }
@@ -75,16 +76,16 @@ class UserService {
     // );
     // Step 1: Find the existing user details
     const userDetails = await UserDetails.findOne({ userId });
-
+    const user = await this.findUserById(userId);
     if (!userDetails) {
       throw new Error("User details not found");
     }
+    userDetails.details["name"] = user.name;
 
     // Step 2: Update the fields in the existing document
     for (const key in updates) {
       userDetails.details[key] = updates[key]; // Update existing fields or add new ones
     }
-
     // Save the updated document
     return await userDetails.save();
   }

@@ -18,9 +18,11 @@ module.exports = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    console.log();
+
     if (
       (admin_routs.includes(req.path) && decoded.role !== "admin") ||
-      req.method === "DELETE"
+      (req.method === "DELETE" && decoded.role !== "admin")
     ) {
       return res
         .status(400)
