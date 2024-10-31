@@ -30,9 +30,13 @@ class NotificationController {
   // Get unread Group notifications count
   async getUnreadGroupNotificationsCount(req, res) {
     const userId = req.user.userId;
+    const groupId = req.params.groupId;
     try {
       const groupCount =
-        await notificationService.getUnreadGroupNotificationsCount(userId);
+        await notificationService.getUnreadGroupNotificationsCount(
+          userId,
+          groupId
+        );
       res.status(200).json({ groupCount });
     } catch (error) {
       res
@@ -67,6 +71,34 @@ class NotificationController {
       res
         .status(500)
         .json({ error: "Failed to fetch group unread notifications" });
+    }
+  }
+
+  async getAllUsersWithUnreadCounts(req, res) {
+    const { userId } = req.user;
+    try {
+      const usersWithUnreadCounts =
+        await notificationService.getAllUsersWithUnreadCounts(userId);
+      res.json(usersWithUnreadCounts);
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch unread counts for users" });
+    }
+  }
+
+  async getUnreadGroupCountsAndLastMessage(req, res) {
+    const { userId } = req.user;
+    try {
+      const groupDetails =
+        await notificationService.getUnreadGroupCountsAndLastMessageForUser(
+          userId
+        );
+      res.json(groupDetails);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to fetch group details" });
     }
   }
 }

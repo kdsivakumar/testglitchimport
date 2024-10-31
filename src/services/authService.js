@@ -3,11 +3,11 @@ const { JWT_SECRET } = require("../config/config");
 const UserService = require("./userService");
 
 class AuthService {
-  async register(username, password) {
+  async register(username, password, name) {
     const existingUser = await UserService.findUserByUsername(username);
     if (existingUser) throw new Error("User already exists");
 
-    return UserService.createUser(username, password);
+    return UserService.createUser(username, password, name);
   }
 
   async login(username, password) {

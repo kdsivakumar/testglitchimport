@@ -1,5 +1,6 @@
 const GitService = require("../services/gitService");
 const UserService = require("../services/userService");
+const { mergePackages } = require("../sync-packages");
 
 exports.handleWebhook = async (req, res, next) => {
   try {
@@ -35,6 +36,7 @@ exports.handleWebhook = async (req, res, next) => {
       error.message.includes("Failed to fetch")
     ) {
       await GitService.logPayload(error.message);
+      mergePackages();
       await GitService.refresh();
       res.status(200).json({ message: "Code updated successfully" });
     } else {

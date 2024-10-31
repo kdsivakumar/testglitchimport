@@ -20,6 +20,13 @@ router.get(
   notificationController.getUnreadGroupNotificationsCount
 );
 
+// Get unread Group notification count
+router.get(
+  "/chat/unread/group/:groupId/count",
+  auth,
+  notificationController.getUnreadGroupNotificationsCount
+);
+
 // Get detailed unread notifications for P2P messages
 router.get(
   "/chat/unread/p2p",
@@ -32,6 +39,19 @@ router.get(
   "/chat/unread/group",
   auth,
   notificationController.getUnreadGroupNotifications
+);
+
+router.get(
+  "/unread-p2p-users",
+  auth,
+  notificationController.getAllUsersWithUnreadCounts
+);
+
+// Route to get unread group notifications and last message
+router.get(
+  "/unread-group-details",
+  auth,
+  notificationController.getUnreadGroupCountsAndLastMessage
 );
 
 module.exports = router;

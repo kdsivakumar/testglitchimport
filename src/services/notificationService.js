@@ -1,4 +1,6 @@
 const Message = require("../models/Message");
+const userService = require("./userService");
+const chatService = require("./chatService");
 
 class NotificationService {
   // Get total unread notifications count (P2P + Group)
@@ -21,11 +23,9 @@ class NotificationService {
   }
 
   // Get unread Group notifications count
-  async getUnreadGroupNotificationsCount(userId) {
-    console.log(userId);
-
+  async getUnreadGroupNotificationsCount(userId, groupId) {
     return await Message.countDocuments({
-      groupId: { $exists: true }, // Ensure it's a group message
+      groupId: groupId || { $exists: true }, // Ensure it's a group message
       analytics: {
         $elemMatch: { userId: userId, readStatus: false },
       },
@@ -56,6 +56,78 @@ class NotificationService {
       .populate("senderId", "username")
       .populate("groupId", "groupName")
       .exec();
+  }
+
+  async getAllUsersWithUnreadCounts(userId) {
+    // Get all users
+    const users = await userService.getAllUsers();
+
+    // Map over each user to fetch their unread message count
+    const usersWithUnreadCounts = await Promise.all(
+      users.map(async (user) => {
+        // Skip the current user themselves
+        if (user._id.toString() === userId.toString()) return null;
+
+        // Count unread messages sent to the current user from this sender
+        const unreadCount = await Message.countDocuments({
+          senderId: user._id,
+          recipientId: userId,
+          analytics: {
+            $elemMatch: { userId: userId, readStatus: false },
+          },
+        });
+
+        // Get the last message for user
+        const lastMessage = await Message.findOne({
+          senderId: user._id,
+          recipientId: userId,
+        }).sort({
+          timestamp: -1,
+        }); // Sort by timestamp in descending order
+
+        return {
+          userId: user._id,
+          username: user.username,
+          unreadCount,
+          lastMessage,
+        };
+      })
+    );
+
+    // Filter out null values (which represent the current user)
+    return usersWithUnreadCounts.filter((user) => user !== null);
+  }
+
+  async getUnreadGroupCountsAndLastMessageForUser(userId) {
+    // Fetch all groups the user belongs to
+    const groups = await chatService.findGroupsByMember(userId);
+    //Group.find({ members: userId });
+
+    // Map over each group to fetch unread count and last message
+    const groupDetails = await Promise.all(
+      groups.map(async (group) => {
+        // Get unread message count for this group
+        const unreadCount = await this.getUnreadGroupNotificationsCount(
+          userId,
+          group._id
+        );
+
+        // Get the last message in this group
+        const lastMessage = await Message.findOne({ groupId: group._id }).sort({
+          timestamp: -1,
+        }); // Sort by timestamp in descending order
+        //.select("message senderId timestamp"); // Select only necessary fields
+
+        return {
+          groupId: group._id,
+          groupName: group.name,
+          unreadCount,
+          lastMessage,
+        };
+      })
+    );
+
+    return groupDetails;
   }
 }
 

@@ -2,9 +2,10 @@ const User = require("../models/userModel");
 const UserDetails = require("../models/userDetails");
 
 class UserService {
-  async createUser(username, password) {
-    const user = new User({ username, password });
+  async createUser(username, password, name) {
+    const user = new User({ username, password, name });
     await user.save();
+    await this.createUserDetails(user.id, { name: name });
     return user;
   }
 
@@ -21,6 +22,12 @@ class UserService {
   }
 
   async updateUserById(id, updates) {
+    const user = await User.findById(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    user.name = updates;
+    return await user.save();
     // const pass = await bcrypt.hash(updates.password, 10);
     // console.log(pass);
     // return User.findByIdAndUpdate(id, { password: pass }, { new: true });

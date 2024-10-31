@@ -16,7 +16,7 @@ const router = express.Router();
 
 router.get("/", authMiddleware, getUsers);
 router.get("/:id", authMiddleware, getUserById);
-//router.put("/:id", authMiddleware, updateUser);
+router.put("/:id", authMiddleware, updateUser);
 router.delete("/:id", authMiddleware, deleteUser);
 router.post("/details", authMiddleware, createUserDetails);
 router.get("/:userId/details", authMiddleware, getUserDetails);

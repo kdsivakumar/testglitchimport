@@ -228,6 +228,64 @@ class ChatService {
     return message;
   }
 
+  // src/services/chatService.js
+
+  async markMessagesAsReadAutoUpdate(messageId, userId) {
+    const message = await Message.findById(messageId);
+    if (!message) throw new Error("Message not found");
+
+    // Determine if this is a group message or P2P message
+    const isGroupMessage = Boolean(message.groupId);
+    let messagesToUpdate = [];
+
+    if (isGroupMessage) {
+      // For group messages, find all unread messages in the group up to the current messageId
+      messagesToUpdate = await Message.find({
+        groupId: message.groupId,
+        analytics: {
+          $elemMatch: { userId: userId, readStatus: false },
+        },
+        _id: { $lte: messageId }, // Only messages up to this ID
+      });
+    } else {
+      // For P2P messages, find all unread messages in the conversation up to the current messageId
+      messagesToUpdate = await Message.find({
+        $or: [
+          { senderId: message.senderId, recipientId: message.recipientId },
+          { senderId: message.recipientId, recipientId: message.senderId },
+        ],
+        analytics: {
+          $elemMatch: { userId: userId, readStatus: false },
+        },
+        _id: { $lte: messageId },
+      });
+    }
+
+    // Update each message's read status
+    for (let msg of messagesToUpdate) {
+      const userAnalytics = msg.analytics.find((analytics) =>
+        analytics.userId.equals(userId)
+      );
+
+      if (userAnalytics) {
+        userAnalytics.readStatus = true;
+        userAnalytics.readAt = new Date();
+      } else {
+        msg.analytics.push({
+          userId: userId,
+          readStatus: true,
+          readAt: new Date(),
+          deliveredStatus: false,
+          deliveredAt: null,
+        });
+      }
+
+      await msg.save();
+    }
+
+    return messagesToUpdate; // Return the list of updated messages if needed
+  }
+
   // You can add more service methods as needed
 }
 

@@ -2,10 +2,10 @@ const AuthService = require("../services/authService");
 const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 exports.register = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, name } = req.body;
 
   try {
-    await AuthService.register(username, password);
+    await AuthService.register(username, password, name);
     res.status(201).json({ message: "User created successfully" });
   } catch (err) {
     ErrorLoggerService.logError(err);
