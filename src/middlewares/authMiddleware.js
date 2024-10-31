@@ -19,7 +19,7 @@ module.exports = (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     if (
-      (admin_routs.includes(req.path) && decoded.user !== "admin") ||
+      (admin_routs.includes(req.path) && decoded.role !== "admin") ||
       req.method === "DELETE"
     ) {
       return res
