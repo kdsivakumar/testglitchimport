@@ -23,7 +23,13 @@ class ChatService {
       message,
       analytics,
     });
-    return await newMessage.save();
+    // Save the new message
+    await newMessage.save();
+
+    // Populate the 'name' fields for both sender and recipient
+    return await Message.findById(newMessage._id)
+      .populate("senderId", "name") // Populate only the 'name' field of sender
+      .populate("recipientId", "name");
   }
 
   async getMessages(userId, otherUserId) {
@@ -32,7 +38,10 @@ class ChatService {
         { senderId: userId, recipientId: otherUserId },
         { senderId: otherUserId, recipientId: userId },
       ],
-    });
+    })
+      .populate("senderId", "name") // Only populate the 'name' field of sender
+      .populate("recipientId", "name") // Only populate the 'name' field of recipient
+      .exec();
   }
 
   async doesGroupExist(groupName) {

@@ -58,6 +58,39 @@ class NotificationService {
       .exec();
   }
 
+  async getp2pchatunreadCount(id, userId) {
+    return await Message.countDocuments({
+      senderId: id,
+      recipientId: userId,
+      analytics: {
+        $elemMatch: { userId: userId, readStatus: false },
+      },
+    });
+  }
+
+  async getp2pLastMessage(id, userId) {
+    return await Message.findOne({
+      $or: [
+        { senderId: id, recipientId: userId },
+        { senderId: userId, recipientId: id },
+      ],
+    }).sort({ timestamp: -1 }); // Sort by timestamp in descending order to get the latest message
+  }
+
+  async getp2pLastMesssageWithCount(id, userId) {
+    // Count unread messages sent to the current user from this sender
+    const unreadCount = await this.getp2pchatunreadCount(id, userId);
+
+    // Get the last message for user
+    const lastMessage = await this.getp2pLastMessage(id, userId);
+    const user = await userService.findUserById(id);
+    return {
+      userId: id,
+      name: user.name,
+      unreadCount,
+      lastMessage,
+    };
+  }
   async getAllUsersWithUnreadCounts(userId) {
     // Get all users
     const users = await userService.getAllUsers();
@@ -69,25 +102,13 @@ class NotificationService {
         if (user._id.toString() === userId.toString()) return null;
 
         // Count unread messages sent to the current user from this sender
-        const unreadCount = await Message.countDocuments({
-          senderId: user._id,
-          recipientId: userId,
-          analytics: {
-            $elemMatch: { userId: userId, readStatus: false },
-          },
-        });
+        const unreadCount = await this.getp2pchatunreadCount(user._id, userId);
 
         // Get the last message for user
-        const lastMessage = await Message.findOne({
-          senderId: user._id,
-          recipientId: userId,
-        }).sort({
-          timestamp: -1,
-        }); // Sort by timestamp in descending order
-
+        const lastMessage = await this.getp2pLastMessage(user._id, userId);
         return {
           userId: user._id,
-          username: user.username,
+          name: user.name,
           unreadCount,
           lastMessage,
         };

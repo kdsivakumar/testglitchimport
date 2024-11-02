@@ -54,14 +54,10 @@ class WebSocketService {
     });
 
     this.io.on("connection", async (socket) => {
-      console.log(socket.user.userId);
-
       console.log("Client connected:", socket.id);
       // socket.on("joinUser", async ({ userId }) => {
       const userId = socket.user.userId;
       try {
-        console.log("recieved", userId);
-
         socket.userId = userId;
         this.addSession(userId, socket.id);
         console.log(`User ${userId} connected with session ${socket.id}`);
@@ -90,6 +86,18 @@ class WebSocketService {
       }
       // });
 
+      socket.on("clickonP2P", async ({ otherUserId }) => {
+        try {
+          const chatlist = await chatService.getMessages(
+            socket.userId,
+            otherUserId
+          );
+          socket.emit("p2pchat", chatlist);
+        } catch (error) {
+          console.error("Error on clickonP2P:", error);
+        }
+      });
+
       socket.on("sendMessage", async ({ recipientId, message }) => {
         try {
           const senderId = socket.userId;
@@ -104,6 +112,26 @@ class WebSocketService {
 
           //other user message
           this.sendSessionMessages(recipientId, "newP2PMessage", newMessage);
+          const selfchatnotification =
+            await notificationService.getp2pLastMesssageWithCount(
+              recipientId,
+              senderId
+            );
+          const chatnotification =
+            await notificationService.getp2pLastMesssageWithCount(
+              senderId,
+              recipientId
+            );
+          this.sendSessionMessages(
+            recipientId,
+            "newP2PNotification",
+            chatnotification
+          );
+          this.sendSessionMessages(
+            senderId,
+            "newP2PNotification",
+            selfchatnotification
+          );
           this.sendunreadP2PCount(recipientId);
         } catch (error) {
           console.error("Error on sendMessage:", error);
