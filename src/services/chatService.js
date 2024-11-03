@@ -180,7 +180,7 @@ class ChatService {
   }
 
   async getGroupMessages(groupId) {
-    return await Message.find({ groupId });
+    return await Message.find({ groupId }).populate("senderId", "name");
   }
 
   // Mark a message as delivered

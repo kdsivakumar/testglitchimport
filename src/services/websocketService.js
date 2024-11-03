@@ -98,6 +98,15 @@ class WebSocketService {
         }
       });
 
+      socket.on("clickonGroup", async ({ groupId }) => {
+        try {
+          const chatlist = await chatService.getGroupMessages(groupId);
+          socket.emit("groupchat", chatlist);
+        } catch (error) {
+          console.error("Error on clickonGroup:", error);
+        }
+      });
+
       socket.on("sendMessage", async ({ recipientId, message }) => {
         try {
           const senderId = socket.userId;
