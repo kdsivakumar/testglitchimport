@@ -23,12 +23,13 @@ class NotificationService {
   }
 
   // Get unread Group notifications count
-  async getUnreadGroupNotificationsCount(userId, groupId) {
+  async getUnreadGroupNotificationsCount(userId, groupId, organizationId) {
     return await Message.countDocuments({
       groupId: groupId || { $exists: true }, // Ensure it's a group message
       analytics: {
         $elemMatch: { userId: userId, readStatus: false },
       },
+      organizationId,
     });
   }
 
@@ -85,16 +86,21 @@ class NotificationService {
     const lastMessage = await this.getp2pLastMessage(id, userId);
     const user = await userService.findUserById(id);
     return {
+      id: id,
       userId: id,
       name: user.name,
       unreadCount,
       lastMessage,
     };
   }
-  async getAllUsersWithUnreadCounts(userId) {
+  async getAllUsersWithUnreadCounts(userId, organizationId) {
     // Get all users
-    const users = await userService.getAllUsers();
-
+    const users = await userService.getAllUsers(organizationId);
+    const um = await chatService.markMessagesAsDeliveredAutoUpdate(
+      userId,
+      organizationId
+    );
+    console.log("getAllUsersWithUnreadCounts", um);
     // Map over each user to fetch their unread message count
     const usersWithUnreadCounts = await Promise.all(
       users.map(async (user) => {
@@ -107,6 +113,7 @@ class NotificationService {
         // Get the last message for user
         const lastMessage = await this.getp2pLastMessage(user._id, userId);
         return {
+          id: user._id,
           userId: user._id,
           name: user.name,
           unreadCount,
@@ -119,9 +126,9 @@ class NotificationService {
     return usersWithUnreadCounts.filter((user) => user !== null);
   }
 
-  async getUnreadGroupCountsAndLastMessageForUser(userId) {
+  async getUnreadGroupCountsAndLastMessageForUser(userId, orgId) {
     // Fetch all groups the user belongs to
-    const groups = await chatService.findGroupsByMember(userId);
+    const groups = await chatService.findGroupsByMember(userId, orgId);
     //Group.find({ members: userId });
 
     // Map over each group to fetch unread count and last message
@@ -130,7 +137,8 @@ class NotificationService {
         // Get unread message count for this group
         const unreadCount = await this.getUnreadGroupNotificationsCount(
           userId,
-          group._id
+          group._id,
+          orgId
         );
 
         // Get the last message in this group
@@ -140,8 +148,9 @@ class NotificationService {
         //.select("message senderId timestamp"); // Select only necessary fields
 
         return {
-          groupId: group._id,
+          id: group._id,
           groupName: group.name,
+          members: group.members,
           unreadCount,
           lastMessage,
         };
@@ -149,6 +158,29 @@ class NotificationService {
     );
 
     return groupDetails;
+  }
+
+  async getGroupUnreadCountAndLastMsg(userId, group, orgId) {
+    // Get unread message count for this group
+    const unreadCount = await this.getUnreadGroupNotificationsCount(
+      userId,
+      group._id,
+      orgId
+    );
+
+    // Get the last message in this group
+    const lastMessage = await Message.findOne({ groupId: group._id }).sort({
+      timestamp: -1,
+    }); // Sort by timestamp in descending order
+    //.select("message senderId timestamp"); // Select only necessary fields
+
+    return {
+      id: group._id,
+      groupName: group.name,
+      members: group.members,
+      unreadCount,
+      lastMessage,
+    };
   }
 }
 

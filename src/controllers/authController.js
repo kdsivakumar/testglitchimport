@@ -1,11 +1,20 @@
+const RoleEnum = require("../config/roleEnum");
 const AuthService = require("../services/authService");
 const ErrorLoggerService = require("../services/loggerservice/errorLoggerService");
 
 exports.register = async (req, res) => {
-  const { username, password, name } = req.body;
+  const { username, password, name, role, orgId } = req.body;
 
   try {
-    await AuthService.register(username, password, name);
+    if (!orgId && !req.orgId)
+      return res.status(400).json({ message: "Organization ID is required" });
+    await AuthService.register(
+      username,
+      password,
+      name,
+      role,
+      req.orgId || orgId
+    );
     res.status(201).json({ message: "User created successfully!" });
   } catch (err) {
     ErrorLoggerService.logError(err);
@@ -14,10 +23,14 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, domain } = req.body;
 
   try {
-    const token = await AuthService.login(username, password);
+    const token = await AuthService.login(
+      username,
+      password,
+      domain || req.headers.origin
+    );
     res.json({ token });
   } catch (err) {
     ErrorLoggerService.logError(err);
@@ -30,7 +43,7 @@ exports.changePassword = async (req, res) => {
   const userId = req.params.userId || req.user.userId; // Use the ID from the params or the authenticated user ID
 
   try {
-    if (req.user.role === "admin") {
+    if (req.userDetails.role === RoleEnum.SUPER_ADMIN) {
       // Admin can change any user's password
       await AuthService.changePassword(userId, newPassword);
       return res.json({ message: "Password changed successfully." }); // Use return to prevent further execution

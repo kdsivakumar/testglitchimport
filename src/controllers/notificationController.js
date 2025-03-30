@@ -78,7 +78,10 @@ class NotificationController {
     const { userId } = req.user;
     try {
       const usersWithUnreadCounts =
-        await notificationService.getAllUsersWithUnreadCounts(userId);
+        await notificationService.getAllUsersWithUnreadCounts(
+          userId,
+          req.userDetails.organizationId
+        );
       res.json(usersWithUnreadCounts);
     } catch (error) {
       console.error(error);
@@ -89,11 +92,12 @@ class NotificationController {
   }
 
   async getUnreadGroupCountsAndLastMessage(req, res) {
-    const { userId } = req.user;
+    const userId = req.user.userId;
     try {
       const groupDetails =
         await notificationService.getUnreadGroupCountsAndLastMessageForUser(
-          userId
+          userId,
+          req.userDetails.organizationId
         );
       res.json(groupDetails);
     } catch (error) {

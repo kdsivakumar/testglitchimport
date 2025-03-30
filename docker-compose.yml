@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  nodeapp:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    networks:
+      - mongo-network
+
+networks:
+  mongo-network:
+    external: true

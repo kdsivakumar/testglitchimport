@@ -10,13 +10,17 @@ class ChatController {
         return res
           .status(400)
           .send({ error: errorCodes.MISSING_REQUIRED_FIELDS });
-      const user = await UserService.findUserById(recipientId);
+      const user = await UserService.findUserById(
+        recipientId,
+        req.userDetails.organizationId
+      );
       if (!user)
         return res.status(404).json({ message: "Recipient details not found" });
       const newMessage = await chatService.sendMessage(
         req.user.userId,
         recipientId,
-        message
+        message,
+        req.userDetails.organizationId
       );
       res.status(201).json(newMessage);
     } catch (error) {
@@ -24,25 +28,76 @@ class ChatController {
     }
   }
 
+  // async getP2PMessages(req, res) {
+  //   const userId = req.user.userId;
+  //   const otherUserId = req.params.userId;
+  //   const count = parseInt(req.query.count) || 2; // Default count 10
+  //   const page = parseInt(req.query.page) || 1;
+  //   const skip = (page - 1) * count;
+
+  //   try {
+  //     const { messages, totalCount } = await chatService.getMessages(
+  //       userId,
+  //       otherUserId,
+  //       req.userDetails.organizationId,
+  //       skip,
+  //       count
+  //     );
+  //     const totalPages = Math.ceil(totalCount / count); // Calculate total pages
+
+  //     res.status(200).json({
+  //       messages,
+  //       pagination: {
+  //         page,
+  //         totalPages,
+  //         totalCount,
+  //         count,
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+
+  //     res.status(500).json({ error: "Failed to fetch messages" });
+  //   }
+  // }
+
   async getP2PMessages(req, res) {
     const userId = req.user.userId;
     const otherUserId = req.params.userId;
+    const count = parseInt(req.query.count) || 10;
+    const { messageId, lastMessageId, message } = req.query; // ID of the last message from the previous page
     try {
-      const messages = await chatService.getMessages(userId, otherUserId);
+      const messages = await chatService.getMessages(
+        userId,
+        otherUserId,
+        req.userDetails.organizationId,
+        count,
+        lastMessageId,
+        message,
+        messageId
+      );
       res.status(200).json(messages);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: "Failed to fetch messages" });
     }
   }
 
   async createGroupChat(req, res) {
-    const { groupName, members } = req.body;
+    const { groupName, members, orgId } = req.body;
     try {
+      if (!orgId && !req.orgId)
+        return res.status(400).json({ message: "Organization ID is required" });
+
       if (!groupName || !members)
         return res
           .status(400)
           .send({ error: errorCodes.createGroupChat.MISSING_REQUIRED_FIELDS });
-      const newGroup = await chatService.createGroup(groupName, members);
+      const newGroup = await chatService.createGroup(
+        groupName,
+        members,
+        req.orgId || orgId
+      );
       res
         .status(201)
         .json({ message: "Group chat created successfully", group: newGroup });
@@ -56,7 +111,11 @@ class ChatController {
 
   async getGroup(req, res) {
     try {
-      const group = await chatService.getGroupById(req.params.groupId);
+      const { orgId } = req.query;
+      const group = await chatService.getGroupById(
+        req.params.groupId,
+        req.orgId || orgId
+      );
       res.status(200).json(group);
     } catch (error) {
       console.log(error);
@@ -70,11 +129,16 @@ class ChatController {
 
   async updateGroup(req, res) {
     const { name, members } = req.body;
+    const { orgId } = req.query;
     try {
-      const updatedGroup = await chatService.updateGroup(req.params.groupId, {
-        name,
-        members,
-      });
+      const updatedGroup = await chatService.updateGroup(
+        req.params.groupId,
+        {
+          name,
+          members,
+        },
+        req.orgId || orgId
+      );
       res
         .status(200)
         .json({ message: "Group updated successfully", group: updatedGroup });
@@ -87,8 +151,9 @@ class ChatController {
   }
 
   async deleteGroup(req, res) {
+    const { orgId } = req.query;
     try {
-      await chatService.deleteGroup(req.params.groupId);
+      await chatService.deleteGroup(req.params.groupId, req.orgId || orgId);
       res.status(200).json({ message: "Group deleted successfully" });
     } catch (error) {
       res.status(error.status || 500).json({
@@ -99,9 +164,27 @@ class ChatController {
   }
 
   async getAllGroups(req, res) {
+    const { orgId, name } = req.query;
+    const count = parseInt(req.query.count) || 10; // Default count 10
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * count;
     try {
-      const groups = await chatService.getAllGroups();
-      res.status(200).json(groups);
+      const { groups, totalCount } = await chatService.getAllGroups(
+        req.orgId || orgId,
+        skip,
+        count,
+        name
+      );
+      const totalPages = Math.ceil(totalCount / count); // Calculate total pages
+      res.status(200).json({
+        groups,
+        pagination: {
+          page,
+          totalPages,
+          totalCount,
+          count,
+        },
+      });
     } catch (error) {
       res.status(error.status || 500).json({
         code: error.code || "SERVER_ERROR",
@@ -113,8 +196,13 @@ class ChatController {
   // Get groups for a single user
   async getGroupsByMember(req, res) {
     const userId = req.user.userId;
+    const { orgId } = req.query;
+
     try {
-      const groups = await chatService.findGroupsByMember(userId);
+      const groups = await chatService.findGroupsByMember(
+        userId,
+        req.orgId || orgId
+      );
       res.status(200).json(groups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch groups by member" });
@@ -124,8 +212,12 @@ class ChatController {
   // Get groups that contain a specific set of members
   async getGroupsByMembers(req, res) {
     const memberIds = req.body.memberIds; // Expect an array of member IDs in the request body
+    const { orgId } = req.query;
     try {
-      const groups = await chatService.findGroupsByMembers(memberIds);
+      const groups = await chatService.findGroupsByMembers(
+        memberIds,
+        req.orgId || orgId
+      );
       res.status(200).json(groups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch groups by members" });
@@ -145,7 +237,8 @@ class ChatController {
       const newMessage = await chatService.sendGroupMessage(
         req.user.userId,
         req.params.groupId,
-        message
+        message,
+        req.userDetails.organizationId
       );
       res.status(201).json(newMessage);
     } catch (error) {
@@ -155,7 +248,11 @@ class ChatController {
 
   async getGroupMessages(req, res) {
     try {
-      const messages = await chatService.getGroupMessages(req.params.groupId);
+      const messages = await chatService.getGroupMessages(
+        req.user.userId,
+        req.params.groupId,
+        req.userDetails.organizationId
+      );
       res.status(200).json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch group messages" });
@@ -170,7 +267,8 @@ class ChatController {
     try {
       const updatedMessage = await chatService.markMessageAsDelivered(
         messageId,
-        userId
+        userId,
+        req.userDetails.organizationId
       );
       res.status(200).json(updatedMessage);
     } catch (error) {
@@ -186,7 +284,8 @@ class ChatController {
     try {
       const updatedMessage = await chatService.markMessageAsRead(
         messageId,
-        userId
+        userId,
+        req.userDetails.organizationId
       );
       res.status(200).json(updatedMessage);
     } catch (error) {

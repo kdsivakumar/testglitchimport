@@ -7,7 +7,7 @@ const MessageSchema = new mongoose.Schema({
     ref: "User",
     required: false,
   },
-  groupId: { type: String, required: false },
+  groupId: { type: String, required: false, ref: "Group" },
   message: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -24,6 +24,11 @@ const MessageSchema = new mongoose.Schema({
       deliveredAt: { type: Date, default: null },
     },
   ],
+  organizationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
+    required: true,
+  },
 });
 
 MessageSchema.pre("save", function (next) {

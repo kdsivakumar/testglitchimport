@@ -1,0 +1,52 @@
+const WebSocket = require('ws');
+
+class ChatService {
+    constructor(server) {
+        this.wss = new WebSocket.Server({ server });
+        this.clients = new Map(); // Store connected clients
+
+        this.wss.on('connection', (ws, req) => {
+            const username = req.url.split('?username=')[1]; // Extract username from URL
+
+            if (username) {
+                this.clients.set(ws, username);
+                this.broadcast(`${username} has joined the chat.`);
+
+                ws.on('message', (message) => {
+                    this.handleMessage(username, message);
+                });
+
+                ws.on('close', () => {
+                    this.handleDisconnect(ws);
+                });
+            } else {
+                ws.close(1008, 'Username required');
+            }
+        });
+    }
+
+    handleMessage(username, message) {
+        const data = JSON.parse(message);
+        if (data.text) {
+            this.broadcast(`${username}: ${data.text}`);
+        }
+    }
+
+    handleDisconnect(ws) {
+        const username = this.clients.get(ws);
+        if (username) {
+            this.clients.delete(ws);
+            this.broadcast(`${username} has left the chat.`);
+        }
+    }
+
+    broadcast(message) {
+        this.clients.forEach((username, client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ message }));
+            }
+        });
+    }
+}
+
+module.exports = ChatService;
